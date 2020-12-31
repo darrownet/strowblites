@@ -1,0 +1,48 @@
+Strowblites Creds
+
+
+
+mongoDB Atlas
+------------------------------------------------------------------------------------------------------------------------
+cluster0
+
+
+Whitelisted IP Addresses
+
+68.161.214.164/32	344 Degraw 12/30/2020
+
+
+USERS:
+
+masterblaster / P0xecl!pse
+
+
+Connection String:
+
+mongodb+srv://masterblaster:P0xecl!pse@cluster0.o9mzk.mongodb.net/strowblites
+
+
+Node.js connection code:
+
+const MongoClient = require('mongodb').MongoClient;
+const uri = "mongodb+srv://masterblaster:P0xecl!pse@cluster0.o9mzk.mongodb.net/strowblites?retryWrites=true&w=majority";
+const client = new MongoClient(uri, { useNewUrlParser: true });
+client.connect(err => {
+  const collection = client.db("test").collection("devices");
+  // perform actions on the collection object
+  client.close();
+});
+
+------------------------------------------------------------------------------------------------------------------------
+
+
+
+Dummy Email System
+------------------------------------------------------------------------------------------------------------------------
+
+https://ethereal.email/
+
+user: carson.macgyver@ethereal.email
+pass: BtaBRBsJMXYRCKn8RQ
+
+------------------------------------------------------------------------------------------------------------------------
