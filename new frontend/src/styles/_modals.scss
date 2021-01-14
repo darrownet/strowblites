@@ -1,0 +1,45 @@
+.modal {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 5;
+  width: 100%;
+  min-height: 100%;
+  padding: 70px 0 0 0;
+
+  .modal-container {
+    position: fixed;
+    width: 720px;
+    margin: 0 0 0 calc(50% - 360px);
+    padding: 20px;
+    color: $text-primary;
+    background: $bg-secondary;
+    border-radius: 4px;
+    box-shadow: 2px 2px 8px rgba(0,0,0,0.25);
+    overflow-y: scroll;
+  }
+
+  .mtms {
+    width: 80%;
+    margin: 0 0 0 10%;
+    table {
+      font-size: 0.8em;
+    }
+    max-height: max-content;
+  }
+
+  .modal-backer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.6);
+    z-index: -1;
+  }
+
+  .close-modal {
+    text-align: right;
+  }
+
+}

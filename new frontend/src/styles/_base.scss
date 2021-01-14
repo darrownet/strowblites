@@ -1,0 +1,72 @@
+html, body {
+  width: 100%;
+  height: 100%;
+}
+html {
+  font-family: Roboto,Helvetica,Arial,sans-serif;
+  font-weight: 400;
+  font-size: 16px;
+  background: $bg-primary;
+}
+
+h1 {
+  font-size: 1.75em;
+  font-weight: 700;
+}
+
+a {
+  color: $text-muted;
+  text-decoration: none;
+}
+a:hover {
+  color: $text-primary;
+}
+
+
+ul {
+  padding: 0;
+  list-style-type: none;
+}
+
+table {
+  color: $text-primary;
+}
+
+.app-container {
+  height: max-content;
+  color: $text-primary;
+  background: $bg-primary;
+  display: flex;
+}
+
+.loader {
+  position: absolute;
+  height: 100%;
+  width: 100%;
+  color: $loader--text-color;
+  box-sizing: border-box;
+  background-color: $bg-loader;
+  &:after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    height: 4px;
+    background: linear-gradient( -45deg, $loader-bar--color-secondary 25%, $loader-bar--color 25%, $loader-bar--color 50%, $loader-bar--color-secondary 50%, $loader-bar--color-secondary 75%, $loader-bar--color 75%, $loader-bar--color);
+    background-size: 20px 20px;
+    animation: moveBar 1.5s linear infinite;
+  }
+  &:after, &:before {
+    box-sizing: border-box;
+    display: none;
+  }
+  &:after, &:before {
+    display: block;
+  }
+}
+@keyframes moveBar{0%{background-position:0 0}to{background-position:20px 20px}}
+
+#root {
+  position: relative;
+  height: max-content;
+}

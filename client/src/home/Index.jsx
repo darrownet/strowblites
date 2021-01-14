@@ -2,6 +2,8 @@ import React from 'react';
 
 import { accountService } from '@/_services';
 
+import Strowblites from '../components';
+
 function Home() {
     const user = accountService.userValue;
     
@@ -10,6 +12,7 @@ function Home() {
             <div className="container">
                 <h1>Hi {user.firstName}!</h1>
                 <p>You're logged in with React & JWT!!</p>
+                <Strowblites />
             </div>
         </div>
     );

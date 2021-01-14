@@ -11,3 +11,45 @@ a { cursor: pointer; }
     background-color: #e8e9ea;
     border-bottom: 1px solid #ccc;
 }
+
+.selected-image img {
+    max-width: 100%;
+    max-height: 120px;
+}
+
+.create-strowb-form {
+    position: relative;
+    padding: 20px;
+    input {
+        width: 100%;
+    }
+    .file-uploader {
+        background-color: #efefef;
+        padding: 10px 10px;
+        margin-bottom : 10px;
+        p {
+            margin-bottom: 0;
+        }
+        .upload-instructions {
+            height: 60px;
+            p {
+                height: 100%;
+                background: red;
+            }
+        }
+    }
+}
+
+.strowb-preview {
+    position: absolute;
+    top: 0;
+    left: 10px;
+    width: calc(100% - 20px);
+    background: red;
+    height: calc(100% - 10px);
+    img {
+        margin: 0 auto;
+        width: 100%;
+        height: auto;
+    }
+}
