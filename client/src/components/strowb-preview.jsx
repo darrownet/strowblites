@@ -12,7 +12,7 @@ const StrowbPreview = ({closeFunction, strowbData}) => {
     const runInterval = () => {
         interval = setInterval(() => {
             showFrame1 ? setShowFrame1(false) : setShowFrame1(true);
-        }, strowbData.delay);
+        }, strowbData.frame1.delay);
     }
 
     const electricsGo = () => {

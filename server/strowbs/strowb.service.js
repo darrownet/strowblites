@@ -33,8 +33,19 @@ function basicDetails(strowb) {
 async function create(params) {
 
     // validate strowb...
-
-    const strowb = new db.Strowb(params);
+    const strowb = new db.Strowb({
+        frame1: {
+            image: '',
+            delay: ''
+        },
+        frame2: {
+            image: '',
+            delay: ''
+        },
+        style: params.style,
+        title: params.title,
+        userId: params.userId
+    });
     //
     // save strowb...
     await strowb.save();
@@ -62,13 +73,31 @@ async function create(params) {
                             console.log("IMG2 ORIG SAVED!");
 
                             const input = [
-                                {"path":`${dir}/frame1-${strowb.id}.webp`, "offset":`+${params.delay}`},
-                                {"path":`${dir}/frame2-${strowb.id}.webp`, "offset":`+${params.delay}`}
+                                {"path":`${dir}/frame1-${strowb.id}.webp`, "offset":`+${params.frame1.delay}`},
+                                {"path":`${dir}/frame2-${strowb.id}.webp`, "offset":`+${params.frame1.delay}`}
                             ];
 
                             const result = webp.webpmux_animate(input,`${dir}/strowb-${strowb.id}.webp`,"0","255,255,255,255");
                             result.then((response) => {
                                 console.log(response);
+                                const updateObj = {
+                                    frame1: {
+                                        caption: params.frame1.caption,
+                                        delay: params.frame1.delay,
+                                        image: `frame1-${strowb.id}.webp`,
+                                        style: params.frame1.style
+                                    },
+                                    frame2: {
+                                        caption: params.frame2.caption,
+                                        delay: params.frame1.delay,
+                                        image: `frame2-${strowb.id}.webp`,
+                                        style: params.frame2.style
+                                    },
+                                    strowb: `strowb-${strowb.id}.webp`
+                                }
+                                db.Strowb.findByIdAndUpdate(strowb.id, updateObj, {new: true}, () => {
+                                    console.log();
+                                });
                             });
 
                         })

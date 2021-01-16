@@ -22,14 +22,15 @@ const CreateStrowb = () => {
             userId: user.id,
             title: values.title,
             style: "",
-            delay: values.delay,
             frame1: {
                 image: values['image1'],
+                delay: values.delay,
                 caption: values['caption2'],
                 style: ""
             },
             frame2: {
                 image: values['image2'],
+                delay: values.delay,
                 caption: values['caption2'],
                 style: ""
             }

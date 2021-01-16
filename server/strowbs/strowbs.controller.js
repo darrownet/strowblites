@@ -6,26 +6,29 @@ const validateRequest = require('_middleware/validate-request');
 const strowbService = require('./strowb.service');
 
 // routes
-router.post('/create', createSchema, create);
+router.post('/create', authorize(), createSchema, create);
 
 module.exports = router;
 
 function createSchema(req, res, next) {
     const schema = Joi.object({
-        userId: Joi.string().required(),
-        title: Joi.string().optional().allow(''),
-        style: Joi.string().optional().allow(''),
-        delay: Joi.string().required(),
         frame1: Joi.object({
-            image: Joi.string().required(),
+            image: Joi.string().optional().allow(''),
+            delay: Joi.string().optional().allow(''),
             caption: Joi.string().optional().allow(''),
             style: Joi.string().optional().allow('')
         }),
         frame2: Joi.object({
-            image: Joi.string().required(),
+            image: Joi.string().optional().allow(''),
+            delay: Joi.string().optional().allow(''),
             caption: Joi.string().optional().allow(''),
             style: Joi.string().optional().allow('')
-        })
+        }),
+        strowb: Joi.string().optional().allow(''),
+        style: Joi.string().optional().allow(''),
+        title: Joi.string().optional().allow(''),
+        tags: Joi.array().optional().allow(''),
+        userId: Joi.string().required(),
     });
     validateRequest(req, next, schema);
 }
