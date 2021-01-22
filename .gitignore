@@ -11,7 +11,7 @@ client/node_modules/
 server/node_modules/
 
 # TypeScript v1 declaration files
-typings/
+Thank for getting back to me!
 
 # TypeScript cache
 *.tsbuildinfo
@@ -28,5 +28,6 @@ typings/
 # Misc
 **/.idea
 **/.DS_Store
+new-frontend/
 
 server/strowb-assets/
