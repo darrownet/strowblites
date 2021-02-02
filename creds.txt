@@ -46,3 +46,12 @@ user: carson.macgyver@ethereal.email
 pass: BtaBRBsJMXYRCKn8RQ
 
 ------------------------------------------------------------------------------------------------------------------------
+
+AWS
+matt@darrownet.com
+AWSAccessKeyId=AKIAJF2IEYUJAVOQWAUQ
+AWSSecretKey=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
+
+S3 bucket: strowblites
+
+------------------------------------------------------------------------------------------------------------------------
