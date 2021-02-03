@@ -1,21 +1,10 @@
 const config = require('config.json');
-const jwt = require('jsonwebtoken');
-const bcrypt = require('bcryptjs');
-const crypto = require("crypto");
-const sendEmail = require('_helpers/send-email');
 const db = require('_helpers/db');
 const Role = require('_helpers/role');
 const aws = require('aws-sdk');
 
-const PassThrough = require('stream').PassThrough;
-
-var CombinedStream = require('combined-stream');
-
 const fs = require('fs');
 const gm = require('gm');
-const concat = require('concat-stream');
-const StreamConcat = require('stream-concat');
-const FileType = require('file-type');
 const webp = require('webp-converter');
 
 module.exports = {
@@ -43,7 +32,8 @@ const uploadToS3Bucket = (image, strowb, part) => {
             'Metadata': {
                 'type': 'webp',
                 'id': strowb.id,
-                'tagging': strowb.tags?.reduce(()=>{}, '') || '',
+                'tagging': strowb.tags?.reduce(() => {
+                }, '') || '',
                 'title': strowb?.title || '',
                 'part': part,
                 'caption1': strowb.frame1?.caption || '',
@@ -59,12 +49,6 @@ const uploadToS3Bucket = (image, strowb, part) => {
             }
         });
     });
-}
-
-function basicDetails(strowb) {
-    const {id} = strowb;
-    // return { id };
-    return strowb;
 }
 
 async function create(params) {
@@ -87,76 +71,85 @@ async function create(params) {
     // save strowb...
     await strowb.save();
 
-    // fire off image processing here...
-    const dir = `./strowb-assets/${strowb.id}`;
-
-    if (!fs.existsSync(dir)) {
-        fs.mkdirSync(dir);
+    const paths = {
+        assetPrefix: 'https://strowblites.s3.amazonaws.com',
+        dir: `./strowb-assets/${strowb.id}`,
+        frame1: `./strowb-assets/${strowb.id}/frame1-${strowb.id}.webp`,
+        frame2: `./strowb-assets/${strowb.id}/frame2-${strowb.id}.webp`,
+        strowb: `./strowb-assets/${strowb.id}/strowb-${strowb.id}.webp`,
     }
 
-    const inputStr1 = params.frame1.image;
-    const inputStr2 = params.frame2.image;
+    if (!fs.existsSync(paths.dir)) {
+        fs.mkdirSync(paths.dir);
+    }
 
-    const imageBuff1 = Buffer.from(inputStr1.split(";base64,")[1], 'base64');
-    const imageBuff2 = Buffer.from(inputStr2.split(";base64,")[1], 'base64');
+    const imageBuff1 = Buffer.from(params.frame1.image.split(";base64,")[1], 'base64');
+    const imageBuff2 = Buffer.from(params.frame2.image.split(";base64,")[1], 'base64');
 
-    gm(imageBuff1)
-        .write(`${dir}/frame1-${strowb.id}.webp`, function (err1) {
-            if (!err1) {
-                gm(imageBuff2)
-                    .write(`${dir}/frame2-${strowb.id}.webp`, function (err2) {
-                        if (!err2) {
-                            const input = [
-                                {"path": `${dir}/frame1-${strowb.id}.webp`, "offset": `+${params.frame1.delay}`},
-                                {"path": `${dir}/frame2-${strowb.id}.webp`, "offset": `+${params.frame2.delay}`}
-                            ];
-                            webp.webpmux_animate(
-                                input,
-                                `${dir}/strowb-${strowb.id}.webp`,
-                                "0",
-                                "255,255,255,255"
-                            ).then((response) => {
-                                const frame1FilePath = fs.readFileSync(`./${dir}/frame1-${strowb.id}.webp`);
-                                const frame2FilePath = fs.readFileSync(`./${dir}/frame2-${strowb.id}.webp`);
-                                const strowbFilePath = fs.readFileSync(`./${dir}/strowb-${strowb.id}.webp`);
-                                const assetPrefix = 'https://strowblites.s3.amazonaws.com';
-                                uploadToS3Bucket(frame1FilePath, strowb, 'frame1').then(() => {
-                                    uploadToS3Bucket(frame2FilePath, strowb, 'frame2').then(() => {
-                                        uploadToS3Bucket(strowbFilePath, strowb, 'strowb').then(() => {
-                                            const updateObj = {
-                                                frame1: {
-                                                    caption: params.frame1.caption,
-                                                    delay: params.frame1.delay,
-                                                    image: `${assetPrefix}/${strowb.id}/frame1-${strowb.id}.webp`,
-                                                    style: params.frame1.style
-                                                },
-                                                frame2: {
-                                                    caption: params.frame2.caption,
-                                                    delay: params.frame2.delay,
-                                                    image: `${assetPrefix}/${strowb.id}/frame2-${strowb.id}.webp`,
-                                                    style: params.frame2.style
-                                                },
-                                                strowb: `${assetPrefix}/${strowb.id}/strowb-${strowb.id}.webp`
-                                            }
-                                            db.Strowb.findByIdAndUpdate(
-                                                strowb.id, updateObj,
-                                                {new: true},
-                                                () => {}
-                                            );
-                                        });
-                                    });
-                                });
-                            });
-                        } else {
-                            console.log(err2.log, err2.stack);
-                        }
-                    });
-            } else {
-                console.log(err1.log, err1.stack);
-            }
-        });
+    let strowbData = null;
 
-    return basicDetails(strowb);
+    await new Promise((resolve, reject) => {
+        gm(imageBuff1)
+            .write(paths.frame1, (err1) => {
+                if (!err1) {
+                    gm(imageBuff2)
+                        .write(paths.frame2, async (err2) => {
+                            if (!err2) {
+                                const input = [
+                                    {"path": paths.frame1, "offset": `+${params.frame1.delay}`},
+                                    {"path": paths.frame2, "offset": `+${params.frame2.delay}`}
+                                ];
+
+                                await webp.webpmux_animate(input, paths.strowb, "0", "255,255,255,255");
+
+                                let frame1File = fs.readFileSync(paths.frame1);
+                                let frame2File = fs.readFileSync(paths.frame2);
+                                let strowbFile = fs.readFileSync(paths.strowb);
+
+                                await uploadToS3Bucket(frame1File, strowb, 'frame1');
+                                await uploadToS3Bucket(frame2File, strowb, 'frame2');
+                                await uploadToS3Bucket(strowbFile, strowb, 'strowb');
+
+                                fs.unlinkSync(paths.frame1);
+                                fs.unlinkSync(paths.frame2);
+                                fs.unlinkSync(paths.strowb);
+                                fs.rmdirSync(paths.dir);
+
+                                const updateObj = {
+                                    frame1: {
+                                        caption: params.frame1.caption,
+                                        delay: params.frame1.delay,
+                                        image: `${paths.assetPrefix}/${paths.frame1}`,
+                                        style: params.frame1.style
+                                    },
+                                    frame2: {
+                                        caption: params.frame2.caption,
+                                        delay: params.frame2.delay,
+                                        image: `${paths.assetPrefix}/${paths.frame2}`,
+                                        style: params.frame2.style
+                                    },
+                                    strowb: `${paths.assetPrefix}/${paths.strowb}`
+                                }
+
+                                strowbData = db.Strowb.findByIdAndUpdate(
+                                    strowb.id,
+                                    updateObj,
+                                    {new: true},
+                                    () => {
+                                        resolve();
+                                    }
+                                );
+                            } else {
+                                reject(err2);
+                            }
+                        });
+                } else {
+                    reject(err1);
+                }
+            });
+    });
+
+    return strowbData;
 }
 
 // async function _delete(id) {

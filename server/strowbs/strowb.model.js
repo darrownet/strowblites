@@ -20,7 +20,13 @@ const strowbSchema = new Schema({
 
 strowbSchema.set('toJSON', {
     virtuals: true,
-    versionKey: false
+    versionKey: false,
+    transform: function (doc, ret) {
+        // remove these props when object is serialized
+        delete ret._id;
+        delete ret.frame1._id;
+        delete ret.frame2._id;
+    }
 });
 
 module.exports = mongoose.model('Strowb', strowbSchema);
