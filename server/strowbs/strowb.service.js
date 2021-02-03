@@ -26,8 +26,7 @@ module.exports = {
 };
 
 
-const uploadToS3Bucket = (image, strowb) => {
-    console.log(strowb);
+const uploadToS3Bucket = (image, strowb, part) => {
     return new Promise((resolve, reject) => {
         const s3 = new aws.S3({
             signatureVersion: 'v4',
@@ -38,14 +37,15 @@ const uploadToS3Bucket = (image, strowb) => {
         const params = {
             'ACL': 'public-read',
             'Bucket': 'strowblites',
-            'Key': `${strowb.id}/strowb-${strowb.id}.webp`,
+            'Key': `${strowb.id}/${part}-${strowb.id}.webp`,
             'Body': image,
             'ContentType': "image/webp",
-            'x-amz-tagging': strowb.tags?.reduce(()=>{}, '') || '',
             'Metadata': {
                 'type': 'webp',
                 'id': strowb.id,
+                'tagging': strowb.tags?.reduce(()=>{}, '') || '',
                 'title': strowb?.title || '',
+                'part': part,
                 'caption1': strowb.frame1?.caption || '',
                 'caption2': strowb.frame2?.caption || '',
                 'user-id': strowb.userId
@@ -53,13 +53,13 @@ const uploadToS3Bucket = (image, strowb) => {
         };
         s3.putObject(params, function (err, data) {
             if (err) {
-                console.log(err);
+                reject(err);
             } else {
-                resolve();
+                resolve(data);
             }
         });
     });
-};
+}
 
 function basicDetails(strowb) {
     const {id} = strowb;
@@ -94,70 +94,8 @@ async function create(params) {
         fs.mkdirSync(dir);
     }
 
-    // const img1FileData = params.frame1.image.substr(params.frame1.image.indexOf(',') + 1);
-    // const img2FileData = params.frame2.image.substr(params.frame2.image.indexOf(',') + 1);
-
-    // gm(new Buffer.from(img1FileData, 'base64'))
-    //     .toBuffer('webp', (err, buffer1) => {
-    //         fs.writeFile(`${dir}/frame1-${strowb.id}.webp`, buffer1, function (err) {
-    //             if (err) throw err.message;
-    //             console.log("IMG1 ORIG SAVED!");
-    //
-    //             gm(new Buffer.from(img2FileData, 'base64'))
-    //                 .toBuffer('webp', function (err, buffer2) {
-    //                     fs.writeFile(`${dir}/frame2-${strowb.id}.webp`, buffer2, function (err) {
-    //                         if (err) throw err.message;
-    //                         console.log("IMG2 ORIG SAVED!");
-    //
-    //                         const input = [
-    //                             {"path": `${dir}/frame1-${strowb.id}.webp`, "offset": `+${params.frame1.delay}`},
-    //                             {"path": `${dir}/frame2-${strowb.id}.webp`, "offset": `+${params.frame1.delay}`}
-    //                         ];
-    //
-    //                         const result = webp.webpmux_animate(input, `${dir}/strowb-${strowb.id}.webp`, "0", "255,255,255,255");
-    //                         result.then((response) => {
-    //                             console.log(response);
-    //                             // upload ${dir} to S3
-    //                             // then...
-    //                             const updateObj = {
-    //                                 frame1: {
-    //                                     caption: params.frame1.caption,
-    //                                     delay: params.frame1.delay,
-    //                                     image: `frame1-${strowb.id}.webp`,
-    //                                     style: params.frame1.style
-    //                                 },
-    //                                 frame2: {
-    //                                     caption: params.frame2.caption,
-    //                                     delay: params.frame1.delay,
-    //                                     image: `frame2-${strowb.id}.webp`,
-    //                                     style: params.frame2.style
-    //                                 },
-    //                                 strowb: `strowb-${strowb.id}.webp`
-    //                             }
-    //                             db.Strowb.findByIdAndUpdate(strowb.id, updateObj, {new: true}, () => {
-    //                                 console.log();
-    //                             });
-    //                         });
-    //
-    //                     })
-    //                 })
-    //         })
-    //     })
-
-    // gm(new Buffer(img1FileData)).toBuffer('webp', (err, buffer) => {
-    //     console.log(buffer);
-    //     fs.writeFile(`${dir}/frame1-${strowb.id}.webp`, buffer, function (err) {
-    //         console.log('che');
-    //     });
-    // });
-
-    // fs.writeFile(dir, new Buffer(img2FileData, 'base64'), () => {
-    //     console.log(new Buffer(img2FileData, 'base64'));
-    // });
-
     const inputStr1 = params.frame1.image;
     const inputStr2 = params.frame2.image;
-
 
     const imageBuff1 = Buffer.from(inputStr1.split(";base64,")[1], 'base64');
     const imageBuff2 = Buffer.from(inputStr2.split(";base64,")[1], 'base64');
@@ -178,28 +116,35 @@ async function create(params) {
                                 "0",
                                 "255,255,255,255"
                             ).then((response) => {
-                                const s3FilePath = fs.readFileSync(`./${dir}/strowb-${strowb.id}.webp`);
-                                uploadToS3Bucket(s3FilePath, strowb.id).then(() => {
-                                    const updateObj = {
-                                        frame1: {
-                                            caption: params.frame1.caption,
-                                            delay: params.frame1.delay,
-                                            image: `frame1-${strowb.id}.webp`,
-                                            style: params.frame1.style
-                                        },
-                                        frame2: {
-                                            caption: params.frame2.caption,
-                                            delay: params.frame2.delay,
-                                            image: `frame2-${strowb.id}.webp`,
-                                            style: params.frame2.style
-                                        },
-                                        strowb: `strowb-${strowb.id}.webp`
-                                    }
-                                    db.Strowb.findByIdAndUpdate(
-                                        strowb.id, updateObj,
-                                        {new: true},
-                                        () => {}
-                                    );
+                                const frame1FilePath = fs.readFileSync(`./${dir}/frame1-${strowb.id}.webp`);
+                                const frame2FilePath = fs.readFileSync(`./${dir}/frame2-${strowb.id}.webp`);
+                                const strowbFilePath = fs.readFileSync(`./${dir}/strowb-${strowb.id}.webp`);
+                                const assetPrefix = 'https://strowblites.s3.amazonaws.com';
+                                uploadToS3Bucket(frame1FilePath, strowb, 'frame1').then(() => {
+                                    uploadToS3Bucket(frame2FilePath, strowb, 'frame2').then(() => {
+                                        uploadToS3Bucket(strowbFilePath, strowb, 'strowb').then(() => {
+                                            const updateObj = {
+                                                frame1: {
+                                                    caption: params.frame1.caption,
+                                                    delay: params.frame1.delay,
+                                                    image: `${assetPrefix}/${strowb.id}/frame1-${strowb.id}.webp`,
+                                                    style: params.frame1.style
+                                                },
+                                                frame2: {
+                                                    caption: params.frame2.caption,
+                                                    delay: params.frame2.delay,
+                                                    image: `${assetPrefix}/${strowb.id}/frame2-${strowb.id}.webp`,
+                                                    style: params.frame2.style
+                                                },
+                                                strowb: `${assetPrefix}/${strowb.id}/strowb-${strowb.id}.webp`
+                                            }
+                                            db.Strowb.findByIdAndUpdate(
+                                                strowb.id, updateObj,
+                                                {new: true},
+                                                () => {}
+                                            );
+                                        });
+                                    });
                                 });
                             });
                         } else {
