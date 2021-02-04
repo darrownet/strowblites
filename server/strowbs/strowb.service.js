@@ -10,12 +10,13 @@ const webp = require('webp-converter');
 module.exports = {
     create,
     // delete: _delete
-    // getAll,
     // getById
+    // getAllByUserId
+    // getMarquee
 };
 
 
-const uploadToS3Bucket = (image, strowb, part) => {
+function uploadToS3Bucket (fileData, strowb, part, ext = 'webp') {
     return new Promise((resolve, reject) => {
         const s3 = new aws.S3({
             signatureVersion: 'v4',
@@ -26,8 +27,8 @@ const uploadToS3Bucket = (image, strowb, part) => {
         const params = {
             'ACL': 'public-read',
             'Bucket': 'strowblites',
-            'Key': `${strowb.id}/${part}-${strowb.id}.webp`,
-            'Body': image,
+            'Key': `${strowb.id}/${part}.${ext}`,
+            'Body': fileData,
             'ContentType': "image/webp",
             'Metadata': {
                 'type': 'webp',
@@ -74,9 +75,9 @@ async function create(params) {
     const paths = {
         assetPrefix: 'https://strowblites.s3.amazonaws.com',
         dir: `./strowb-assets/${strowb.id}`,
-        frame1: `./strowb-assets/${strowb.id}/frame1-${strowb.id}.webp`,
-        frame2: `./strowb-assets/${strowb.id}/frame2-${strowb.id}.webp`,
-        strowb: `./strowb-assets/${strowb.id}/strowb-${strowb.id}.webp`,
+        frame1: `./strowb-assets/${strowb.id}/frame1.webp`,
+        frame2: `./strowb-assets/${strowb.id}/frame2.webp`,
+        strowb: `./strowb-assets/${strowb.id}/strowb.webp`,
     }
 
     if (!fs.existsSync(paths.dir)) {
@@ -119,16 +120,16 @@ async function create(params) {
                                     frame1: {
                                         caption: params.frame1.caption,
                                         delay: params.frame1.delay,
-                                        image: `${paths.assetPrefix}/${paths.frame1}`,
+                                        image: `${paths.assetPrefix}/${paths.frame1.substr(2)}`,
                                         style: params.frame1.style
                                     },
                                     frame2: {
                                         caption: params.frame2.caption,
                                         delay: params.frame2.delay,
-                                        image: `${paths.assetPrefix}/${paths.frame2}`,
+                                        image: `${paths.assetPrefix}/${paths.frame2.substr(2)}`,
                                         style: params.frame2.style
                                     },
-                                    strowb: `${paths.assetPrefix}/${paths.strowb}`
+                                    strowb: `${paths.assetPrefix}/${paths.strowb.substr(2)}`
                                 }
 
                                 strowbData = db.Strowb.findByIdAndUpdate(
