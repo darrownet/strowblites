@@ -6,26 +6,31 @@ import { strowbService } from '@/_services';
 const StrowbPreview = ({closeFunction, strowbData}) => {
 
     const [showFrame1, setShowFrame1] = useState(true);
+    const [delay, setDelay] = useState(strowbData.delay || 450) || [0,()=>{}];
 
     let interval = null;
 
     const runInterval = () => {
         interval = setInterval(() => {
             showFrame1 ? setShowFrame1(false) : setShowFrame1(true);
-        }, strowbData.frame1.delay);
+        }, delay);
     }
 
     const electricsGo = () => {
-        console.log(strowbData);
-        strowbService.createStrowb(strowbData)
+        strowbService.createStrowb({...strowbData, delay})
             .then((response) => {
                 console.log(response);
             })
             .catch(() => {})
     }
 
+    const onDelayChange = (event) => {
+        setDelay(Number(event.currentTarget.value));
+    }
+
     useEffect(() => {
         runInterval();
+        console.log(delay);
         return () => {
             clearInterval(interval);
         }
@@ -35,8 +40,9 @@ const StrowbPreview = ({closeFunction, strowbData}) => {
         <div className='strowb-preview'>
             <button onClick={closeFunction}>close</button>
             <p>{strowbData.title}</p>
-            {showFrame1 && <img src={strowbData.frame1.image}/>}
-            {!showFrame1 && <img src={strowbData.frame2.image}/>}
+            {showFrame1 && <img src={strowbData.frame1}/>}
+            {!showFrame1 && <img src={strowbData.frame2}/>}
+            <input name="delay" type="range" min="0" max="3000" value={delay} onChange={onDelayChange} />
             <button onClick={electricsGo}>It's Showtime!</button>
         </div>
     );

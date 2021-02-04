@@ -14,26 +14,14 @@ const CreateStrowb = () => {
     const [strowbPreviewVisible, setStrowbPreviewVisible] = useState(false);
     const [strowbData, setStrowbData] = useState({});
 
-    const createStrowb = (values, event) => {
+    const previewStrowb = (values, event) => {
 
         event.preventDefault();
 
         const strowbData = {
-            userId: user.id,
-            title: values.title,
-            style: "",
-            frame1: {
-                image: values['image1'],
-                delay: values.delay,
-                caption: values['caption2'],
-                style: ""
-            },
-            frame2: {
-                image: values['image2'],
-                delay: values.delay,
-                caption: values['caption2'],
-                style: ""
-            }
+            delay: values.delay,
+            frame1: values['image1'],
+            frame2: values['image2']
         }
 
         setStrowbData(strowbData);
@@ -41,25 +29,12 @@ const CreateStrowb = () => {
 
     }
 
-    const previewStrowb = () => {
-        console.log('preview strowb');
-    }
-
     return (
         <div className="create-strowb-form">
             <FormProvider {...methods}>
-                <form onSubmit={methods.handleSubmit(createStrowb)}>
-                    <h3>create strowb form!</h3>
-                    <input type="text" name="title" ref={methods.register} />
-                    <hr />
+                <form onSubmit={methods.handleSubmit(previewStrowb)}>
                     <FileLoader name="image1" showPreview={true} required={true} />
-                    <input type="text" name="caption1" ref={methods.register} />
-                    <hr />
                     <FileLoader name="image2" showPreview={true} required={true} />
-                    <input type="text" name="caption2" ref={methods.register} />
-                    <hr />
-                    <input name="delay" type="range" min="300" max="3000" defaultValue="350" ref={methods.register} />
-                    <br />
                     <input name="preview" type="submit" value="preview" />
                 </form>
             </FormProvider>
