@@ -1,6 +1,4 @@
-const config = require('config.json');
 const db = require('_helpers/db');
-const Role = require('_helpers/role');
 const aws = require('aws-sdk');
 
 const fs = require('fs');
@@ -16,7 +14,7 @@ module.exports = {
 };
 
 
-function uploadToS3Bucket (fileData, strowb, part, ext = 'webp') {
+function uploadToS3Bucket(fileData, strowb, part, ext = 'webp') {
     return new Promise((resolve, reject) => {
         const s3 = new aws.S3({
             signatureVersion: 'v4',
@@ -56,16 +54,6 @@ async function create(params) {
 
     // validate strowb...
     const strowb = new db.Strowb({
-        frame1: {
-            image: '',
-            delay: ''
-        },
-        frame2: {
-            image: '',
-            delay: ''
-        },
-        style: params.style,
-        title: params.title,
         userId: params.userId
     });
     //
@@ -78,6 +66,7 @@ async function create(params) {
         frame1: `./strowb-assets/${strowb.id}/frame1.webp`,
         frame2: `./strowb-assets/${strowb.id}/frame2.webp`,
         strowb: `./strowb-assets/${strowb.id}/strowb.webp`,
+        strowbGif: `./strowb-assets/${strowb.id}/strowb.gif`,
     }
 
     if (!fs.existsSync(paths.dir)) {
@@ -97,39 +86,54 @@ async function create(params) {
                         .write(paths.frame2, async (err2) => {
                             if (!err2) {
                                 const input = [
-                                    {"path": paths.frame1, "offset": `+${params.frame1.delay}`},
-                                    {"path": paths.frame2, "offset": `+${params.frame2.delay}`}
+                                    {"path": paths.frame1, "offset": `+${params.frame1.delay/10}`},
+                                    {"path": paths.frame2, "offset": `+${params.frame2.delay/10}`}
                                 ];
 
                                 await webp.webpmux_animate(input, paths.strowb, "0", "255,255,255,255");
 
+                                await new Promise((resolve, reject) => {
+                                    gm()
+                                        .in(paths.frame1)
+                                        .in(paths.frame2)
+                                        .delay(Number(params.frame1.delay)/10)
+                                        .write(paths.strowbGif, function(err){
+                                            if (err) {
+                                                console.log(err);
+                                                reject();
+                                            } else {
+                                                resolve();
+                                            }
+                                            console.log("animated.gif created");
+                                        });
+                                });
+
                                 let frame1File = fs.readFileSync(paths.frame1);
                                 let frame2File = fs.readFileSync(paths.frame2);
                                 let strowbFile = fs.readFileSync(paths.strowb);
+                                let strowbGif = fs.readFileSync(paths.strowbGif);
 
                                 await uploadToS3Bucket(frame1File, strowb, 'frame1');
                                 await uploadToS3Bucket(frame2File, strowb, 'frame2');
                                 await uploadToS3Bucket(strowbFile, strowb, 'strowb');
+                                await uploadToS3Bucket(strowbGif, strowb, 'strowbGif', 'gif');
 
                                 fs.unlinkSync(paths.frame1);
                                 fs.unlinkSync(paths.frame2);
                                 fs.unlinkSync(paths.strowb);
+                                fs.unlinkSync(paths.strowbGif);
                                 fs.rmdirSync(paths.dir);
 
                                 const updateObj = {
                                     frame1: {
-                                        caption: params.frame1.caption,
                                         delay: params.frame1.delay,
-                                        image: `${paths.assetPrefix}/${paths.frame1.substr(2)}`,
-                                        style: params.frame1.style
+                                        image: `${paths.assetPrefix}/${strowb.id}/frame1.webp`,
                                     },
                                     frame2: {
-                                        caption: params.frame2.caption,
                                         delay: params.frame2.delay,
-                                        image: `${paths.assetPrefix}/${paths.frame2.substr(2)}`,
-                                        style: params.frame2.style
+                                        image: `${paths.assetPrefix}/${strowb.id}/frame2.webp`,
                                     },
-                                    strowb: `${paths.assetPrefix}/${paths.strowb.substr(2)}`
+                                    strowb: `${paths.assetPrefix}/${strowb.id}/strowb.webp`,
                                 }
 
                                 strowbData = db.Strowb.findByIdAndUpdate(
@@ -149,7 +153,6 @@ async function create(params) {
                 }
             });
     });
-
     return strowbData;
 }
 

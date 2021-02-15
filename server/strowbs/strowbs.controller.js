@@ -13,24 +13,26 @@ module.exports = router;
 function createSchema(req, res, next) {
     const schema = Joi.object({
         frame1: Joi.object({
-            image: Joi.string().optional().allow(''),
-            delay: Joi.string().optional().allow(''),
+            image: Joi.string().required(),
+            delay: Joi.string().required(),
             caption: Joi.string().optional().allow(''),
             style: Joi.string().optional().allow('')
         }),
         frame2: Joi.object({
-            image: Joi.string().optional().allow(''),
-            delay: Joi.string().optional().allow(''),
+            image: Joi.string().required(),
+            delay: Joi.string().required(),
             caption: Joi.string().optional().allow(''),
-            style: Joi.string().optional().allow('')
         }),
-        strowb: Joi.string().optional().allow(''),
         style: Joi.string().optional().allow(''),
         title: Joi.string().optional().allow(''),
         tags: Joi.array().optional().allow(''),
-        userId: Joi.string().required(),
+        userId: Joi.string().required().default(req.user.id),
     });
-    validateRequest(req, next, schema);
+    if (req.body.userId !== req.user.id) {
+        res.send('FU');
+    } else {
+        validateRequest(req, next, schema);
+    }
 }
 
 function create(req, res, next) {

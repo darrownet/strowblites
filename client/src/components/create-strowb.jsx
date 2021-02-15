@@ -9,7 +9,6 @@ import StrowbPreview from "./strowb-preview";
 const CreateStrowb = () => {
 
     const methods = useForm();
-    const user = accountService.userValue;
 
     const [strowbPreviewVisible, setStrowbPreviewVisible] = useState(false);
     const [strowbData, setStrowbData] = useState({});

@@ -2,20 +2,20 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
 const strowbFrameSchema = new Schema({
-    image: {type: String, unique: false, required: false},
-    caption: {type: String, unique: false, required: false, default: ''},
-    delay: {type: String, unique: false, required: false},
-    style: {type: String, unique: false, required: false, default: ''}
+    image: {type: String, unique: false, required: true},
+    caption: {type: String, unique: false, required: false},
+    delay: {type: String, unique: false, required: true},
+    style: {type: String, unique: false, required: false}
 });
 
 const strowbSchema = new Schema({
     userId: {type: String, unique: false, required: true},
     title: {type: String, unique: false, required: false},
     style: {type: String, unique: false, required: false},
-    strowb: {type: String, unique: false, required: false, default: ''},
-    frame1: {type: strowbFrameSchema, required: true},
-    frame2: {type: strowbFrameSchema, required: true},
-    tags: {type: Array, required: false, default: ''}
+    strowb: {type: String, unique: false, required: false},
+    frame1: {type: strowbFrameSchema, required: false},
+    frame2: {type: strowbFrameSchema, required: false},
+    tags: {type: Array, required: false}
 });
 
 strowbSchema.set('toJSON', {

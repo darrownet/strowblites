@@ -1,12 +1,14 @@
 import React, {useEffect, useState} from 'react';
 import PropTypes from "prop-types";
 
-import { strowbService } from '@/_services';
+import {accountService, strowbService} from '@/_services';
 
 const StrowbPreview = ({closeFunction, strowbData}) => {
 
     const [showFrame1, setShowFrame1] = useState(true);
     const [delay, setDelay] = useState(strowbData.delay || 450) || [0,()=>{}];
+
+    const user = accountService.userValue;
 
     let interval = null;
 
@@ -17,7 +19,18 @@ const StrowbPreview = ({closeFunction, strowbData}) => {
     }
 
     const electricsGo = () => {
-        strowbService.createStrowb({...strowbData, delay})
+        const obj = {
+            frame1: {
+                delay: `${delay}`,
+                image: strowbData.frame1
+            },
+            frame2: {
+                delay: `${delay}`,
+                image: strowbData.frame2
+            },
+            userId: user.id
+        };
+        strowbService.createStrowb(obj)
             .then((response) => {
                 console.log(response);
             })
